@@ -1,0 +1,67 @@
+# Primary benchmark: Norman et al. 2019 (K562, CRISPRa, single and paired activation).
+dataset_id: norman2019
+seed: 0
+
+preprocess:
+  perturbation_col: perturbation
+  replicate_col: gemgroup        # 10x lane; a technical batch, NOT an independent biological replicate
+  control_label: control
+  cell_filters:                  # droplets estimated to hold one cell, with adequate guide coverage
+    good_coverage: true
+    number_of_cells: 1
+  min_cells_per_condition: 50
+  max_perturbed_genes: 2
+  target_sum: 10000
+  gene_set: hvg                  # hvg | top_expressed; selected from CONTROL cells only
+  n_genes: 2000
+  min_control_detection: 0.01    # gene must be detected in at least this fraction of control cells
+  embedding_dim: 32              # co-expression gene embedding, from control cells only
+  max_control_cells: 8000
+
+splits:
+  n_folds: 5
+  calibration_fraction: 0.15     # of training conditions, held out for early stopping + calibration
+
+models:
+  knn_k: [1, 3, 5, 10]
+  ridge_alpha: [0.1, 1.0, 10.0, 100.0, 1000.0, 10000.0]
+  mlp:
+    n_members: 5
+    bootstrap: true
+    hidden: [128, 64]
+    n_components: 20             # responses are predicted in a PCA basis fitted on training responses
+    dropout: 0.1
+    weight_decay: 0.001
+    lr: 0.001
+    max_epochs: 400
+    patience: 40
+    batch_size: 32
+    loss: huber                  # huber | mse
+
+evaluation:
+  top_k: 20
+  n_bootstrap: 2000
+  coverage_alpha: 0.1
+
+active_learning:
+  n_repeats: 10
+  initial: 15
+  batch: 5
+  rounds: 8
+  strategies: [random, uncertainty, diversity, hybrid]
+
+network:
+  enabled: false                 # network features are compared by `benchmark representations`, not used in this run
+
+context:
+  cell_context: K562
+  perturbation_type: CRISPRa
+
+ablations:
+  enabled: true
+  split_seeds: [1, 2, 3]
+  preprocessing:
+    no_cell_filter: {cell_filters: {}}
+    hvg_1000: {n_genes: 1000}
+    hvg_5000: {n_genes: 5000}
+    top_expressed_2000: {gene_set: top_expressed}

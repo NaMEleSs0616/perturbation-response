@@ -1,0 +1,14 @@
+altair==6.3.0
+anndata==0.12.19
+h5py==3.16.0
+matplotlib==3.11.2
+numpy==2.4.6
+pandas==2.3.3
+pytest==9.1.1
+PyYAML==6.0.3
+requests==2.34.2
+scanpy==1.11.5
+scikit-learn==1.9.1
+scipy==1.17.1
+streamlit==1.66.1
+torch==2.14.1

@@ -1,0 +1,165 @@
+# Dataset registry. Each entry describes ONE file of a public perturbation dataset.
+# `validation_status` is updated in data/raw/<id>/validation.json by `datasets validate`,
+# not here; the value below is the status at the time this registry was written.
+# Downloads are never triggered implicitly. Large files require --allow-large.
+
+defaults:
+  zenodo_record: "13350497"          # scPerturb RNA/protein archive, version 1.4
+  zenodo_concept_doi: "10.5281/zenodo.7041848"
+  archive_license: "CC-BY-4.0 (Zenodo record for the harmonised h5ad files)"
+  max_default_download_mb: 800
+
+datasets:
+  norman2019:
+    name: "Norman et al. 2019 - K562 CRISPRa single and pairwise perturbations"
+    publication: "Norman TM, Horlbeck MA, Replogle JM, et al. Exploring genetic interaction manifolds constructed from rich single-cell phenotypes. Science 365:786-793 (2019). doi:10.1126/science.aax4438"
+    source_url: "https://zenodo.org/records/13350497"
+    accession: "GEO GSE133344"
+    doi: "10.5281/zenodo.13350497"
+    file: "NormanWeissman2019_filtered.h5ad"
+    download_url: "https://zenodo.org/api/records/13350497/files/NormanWeissman2019_filtered.h5ad/content"
+    md5: "c870e6967d91c017d9da827bab183cd6"
+    size_mb: 698.7
+    download_instructions: "python -m biophysical.cli datasets download norman2019"
+    license: "Harmonised file: CC-BY-4.0 (scPerturb Zenodo). Original GEO deposit: NCBI GEO data are publicly available; see https://www.ncbi.nlm.nih.gov/geo/info/disclaimer.html and cite the original study."
+    organism: "Homo sapiens"
+    assay: "Perturb-seq (10x Genomics 3' scRNA-seq), CRISPRa"
+    cell_context: "K562 (chronic myelogenous leukaemia cell line)"
+    perturbation_types: ["CRISPRa single-gene", "CRISPRa two-gene combination"]
+    expected_obs_fields: ["perturbation", "perturbation_type", "nperts", "ncounts", "ngenes"]
+    control_label: "control"
+    role: "primary_benchmark"
+    preprocessing_config: "configs/benchmark_norman.yaml"
+    validation_status: "pending_download"
+
+  adamson2016_pilot:
+    name: "Adamson et al. 2016 - K562 CRISPRi pilot (GSM2406675, 10X001)"
+    publication: "Adamson B, Norman TM, Jost M, et al. A Multiplexed Single-Cell CRISPR Screening Platform Enables Systematic Dissection of the Unfolded Protein Response. Cell 167:1867-1882 (2016). doi:10.1016/j.cell.2016.11.048"
+    source_url: "https://zenodo.org/records/13350497"
+    accession: "GEO GSE90546 (sample GSM2406675)"
+    doi: "10.5281/zenodo.13350497"
+    file: "AdamsonWeissman2016_GSM2406675_10X001.h5ad"
+    download_url: "https://zenodo.org/api/records/13350497/files/AdamsonWeissman2016_GSM2406675_10X001.h5ad/content"
+    md5: "232f7e3756d41602bbe434b50662a76f"
+    size_mb: 34.6
+    download_instructions: "python -m biophysical.cli datasets download adamson2016_pilot"
+    license: "Harmonised file: CC-BY-4.0 (scPerturb Zenodo). Original: NCBI GEO."
+    organism: "Homo sapiens"
+    assay: "Perturb-seq (10x Genomics), CRISPRi"
+    cell_context: "K562"
+    perturbation_types: ["CRISPRi single-gene"]
+    expected_obs_fields: ["perturbation", "perturbation_type"]
+    control_label: "control"
+    role: "small_download_and_schema_check"
+    preprocessing_config: null
+    validation_status: "pending_download"
+
+  adamson2016_upr:
+    name: "Adamson et al. 2016 - K562 CRISPRi UPR screen (GSM2406681, 10X010)"
+    publication: "Adamson B, et al. Cell 167:1867-1882 (2016). doi:10.1016/j.cell.2016.11.048"
+    source_url: "https://zenodo.org/records/13350497"
+    accession: "GEO GSE90546 (sample GSM2406681)"
+    doi: "10.5281/zenodo.13350497"
+    file: "AdamsonWeissman2016_GSM2406681_10X010.h5ad"
+    download_url: "https://zenodo.org/api/records/13350497/files/AdamsonWeissman2016_GSM2406681_10X010.h5ad/content"
+    md5: "2fa44ea61a8dd35742af618638ec65fc"
+    size_mb: 471.3
+    download_instructions: "python -m biophysical.cli datasets download adamson2016_upr"
+    license: "Harmonised file: CC-BY-4.0 (scPerturb Zenodo). Original: NCBI GEO."
+    organism: "Homo sapiens"
+    assay: "Perturb-seq (10x Genomics), CRISPRi"
+    cell_context: "K562"
+    perturbation_types: ["CRISPRi single-gene"]
+    expected_obs_fields: ["perturbation", "perturbation_type"]
+    control_label: "control"
+    role: "candidate_independent_evaluation"
+    preprocessing_config: null
+    validation_status: "not_downloaded"
+
+  replogle2022_rpe1:
+    name: "Replogle et al. 2022 - RPE1 essential-gene CRISPRi"
+    publication: "Replogle JM, Saunders RA, Pogson AN, et al. Mapping information-rich genotype-phenotype landscapes with genome-scale Perturb-seq. Cell 185:2559-2575 (2022). doi:10.1016/j.cell.2022.05.013"
+    source_url: "https://zenodo.org/records/13350497"
+    accession: "Figshare plus 10.25452/figshare.plus.20029387 (original processed data)"
+    doi: "10.5281/zenodo.13350497"
+    file: "ReplogleWeissman2022_rpe1.h5ad"
+    download_url: "https://zenodo.org/api/records/13350497/files/ReplogleWeissman2022_rpe1.h5ad/content"
+    md5: "cc7f1ec50aeb3a3e1b4a6cfa713d80fa"
+    size_mb: 1236.9
+    download_instructions: "python -m biophysical.cli datasets download replogle2022_rpe1 --allow-large"
+    license: "Harmonised file: CC-BY-4.0 (scPerturb Zenodo). Original: Figshare (see original record)."
+    organism: "Homo sapiens"
+    assay: "Perturb-seq (10x Genomics), CRISPRi"
+    cell_context: "hTERT-RPE1"
+    perturbation_types: ["CRISPRi single-gene"]
+    expected_obs_fields: ["perturbation", "perturbation_type"]
+    control_label: "control"
+    role: "candidate_cross_context_evaluation"
+    preprocessing_config: null
+    validation_status: "not_downloaded"
+
+  replogle2022_k562_essential:
+    name: "Replogle et al. 2022 - K562 essential-gene CRISPRi"
+    publication: "Replogle JM, et al. Cell 185:2559-2575 (2022). doi:10.1016/j.cell.2022.05.013"
+    source_url: "https://zenodo.org/records/13350497"
+    accession: "Figshare plus 10.25452/figshare.plus.20029387"
+    doi: "10.5281/zenodo.13350497"
+    file: "ReplogleWeissman2022_K562_essential.h5ad"
+    download_url: "https://zenodo.org/api/records/13350497/files/ReplogleWeissman2022_K562_essential.h5ad/content"
+    md5: "d8cba17576d1a8afc0f7d71b79cad0f7"
+    size_mb: 1546.7
+    download_instructions: "python -m biophysical.cli datasets download replogle2022_k562_essential --allow-large"
+    license: "Harmonised file: CC-BY-4.0 (scPerturb Zenodo)."
+    organism: "Homo sapiens"
+    assay: "Perturb-seq (10x Genomics), CRISPRi"
+    cell_context: "K562"
+    perturbation_types: ["CRISPRi single-gene"]
+    expected_obs_fields: ["perturbation", "perturbation_type"]
+    control_label: "control"
+    role: "candidate_independent_evaluation"
+    preprocessing_config: null
+    validation_status: "not_downloaded"
+
+  dixit2016_k562_7d:
+    name: "Dixit et al. 2016 - K562 TF knockouts, day 7"
+    publication: "Dixit A, Parnas O, Li B, et al. Perturb-Seq: Dissecting Molecular Circuits with Scalable Single-Cell RNA Profiling of Pooled Genetic Screens. Cell 167:1853-1866 (2016). doi:10.1016/j.cell.2016.11.038"
+    source_url: "https://zenodo.org/records/13350497"
+    accession: "GEO GSE90063"
+    doi: "10.5281/zenodo.13350497"
+    file: "DixitRegev2016_K562_TFs_7_days.h5ad"
+    download_url: "https://zenodo.org/api/records/13350497/files/DixitRegev2016_K562_TFs_7_days.h5ad/content"
+    md5: "b4fb773a3b3857a8ee471d6d2f5221e0"
+    size_mb: 256.7
+    download_instructions: "python -m biophysical.cli datasets download dixit2016_k562_7d"
+    license: "Harmonised file: CC-BY-4.0 (scPerturb Zenodo). Original: NCBI GEO."
+    organism: "Homo sapiens"
+    assay: "Perturb-seq, CRISPR knockout (Cas9)"
+    cell_context: "K562"
+    perturbation_types: ["CRISPR knockout"]
+    expected_obs_fields: ["perturbation", "perturbation_type"]
+    control_label: "control"
+    role: "candidate_independent_evaluation"
+    preprocessing_config: null
+    validation_status: "not_downloaded"
+
+  papalexi2021_eccite:
+    name: "Papalexi et al. 2021 - THP-1 ECCITE-seq immune checkpoint regulators (RNA)"
+    publication: "Papalexi E, Mimitou EP, Butler AW, et al. Characterizing the molecular regulation of inhibitory immune checkpoints with multimodal single-cell screens. Nat Genet 53:322-331 (2021). doi:10.1038/s41588-021-00778-2"
+    source_url: "https://zenodo.org/records/13350497"
+    accession: "GEO GSE153056"
+    doi: "10.5281/zenodo.13350497"
+    file: "PapalexiSatija2021_eccite_RNA.h5ad"
+    download_url: "https://zenodo.org/api/records/13350497/files/PapalexiSatija2021_eccite_RNA.h5ad/content"
+    md5: "d9e8bfe20b0e7b0919be042e8fcf6d03"
+    size_mb: 147.2
+    download_instructions: "python -m biophysical.cli datasets download papalexi2021_eccite"
+    license: "Harmonised file: CC-BY-4.0 (scPerturb Zenodo). Original: NCBI GEO."
+    organism: "Homo sapiens"
+    assay: "ECCITE-seq (RNA + surface protein + guide), CRISPR knockout"
+    cell_context: "THP-1 (monocytic leukaemia), IFN-gamma stimulated"
+    perturbation_types: ["CRISPR knockout"]
+    expected_obs_fields: ["perturbation", "perturbation_type"]
+    control_label: "control"
+    role: "candidate_cross_context_evaluation"
+    preprocessing_config: null
+    validation_status: "not_downloaded"
