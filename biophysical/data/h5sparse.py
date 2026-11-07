@@ -40,11 +40,15 @@ def x_layout(path: str | Path) -> XLayout:
         return XLayout(enc, shape, int(X["data"].shape[0]))
 
 
-def iter_major_chunks(path: str | Path, chunk: int = 2000) -> Iterator[tuple[int, int, sp.spmatrix | np.ndarray]]:
+MAX_CHUNK_NNZ = 20_000_000  # bounds peak memory per chunk (values, indices and derived copies)
+
+
+def iter_major_chunks(path: str | Path, chunk: int = 2000, max_nnz: int = MAX_CHUNK_NNZ) -> Iterator[tuple[int, int, sp.spmatrix | np.ndarray]]:
     """Yield (start, stop, block) along the major axis.
 
     For CSR/dense, block has shape (stop-start, n_genes) as CSR. For CSC, block has shape
-    (n_cells, stop-start) as CSC.
+    (n_cells, stop-start) as CSC. Sparse chunks hold at most `chunk` major-axis entries and, unless a
+    single entry exceeds it, at most `max_nnz` stored values.
     """
     layout = x_layout(path)
     n_major = layout.shape[layout.major_axis]
@@ -58,8 +62,11 @@ def iter_major_chunks(path: str | Path, chunk: int = 2000) -> Iterator[tuple[int
         indptr = X["indptr"][:]
         data, indices = X["data"], X["indices"]
         n_minor = layout.shape[1 - layout.major_axis]
-        for s in range(0, n_major, chunk):
+        s = 0
+        while s < n_major:
             e = min(s + chunk, n_major)
+            if indptr[e] - indptr[s] > max_nnz:
+                e = max(s + 1, int(np.searchsorted(indptr, indptr[s] + max_nnz, side="right")) - 1)
             a, b = int(indptr[s]), int(indptr[e])
             ip = indptr[s:e + 1] - a
             d = data[a:b].astype(np.float32, copy=False)
@@ -68,6 +75,7 @@ def iter_major_chunks(path: str | Path, chunk: int = 2000) -> Iterator[tuple[int
                 yield s, e, sp.csr_matrix((d, ix, ip), shape=(e - s, n_minor))
             else:
                 yield s, e, sp.csc_matrix((d, ix, ip), shape=(n_minor, e - s))
+            s = e
 
 
 def sample_block(path: str | Path, n: int = 500) -> np.ndarray:

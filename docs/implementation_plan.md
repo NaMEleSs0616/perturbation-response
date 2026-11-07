@@ -27,9 +27,12 @@ Phases follow the project brief. Status reflects what was run, not what was inte
 9. Local interface runs on the actual pipeline: **met**; see the README.
 10. Documentation separates demonstrated results from plans: **met** (`benchmarking.md`, `model_card.md` vs `roadmap.md`).
 
+## Done since the MVP
+
+- Multi-dataset study under a fixed analysis plan (Replogle K562 and RPE1, Tian neuron CRISPRa and CRISPRi); see `paper/main.pdf`.
+
 ## Not done
 
-- Independent evaluation on a second dataset. The registered candidates differ in modality or context, and none was benchmarked.
 - Evaluation across biological replicates (not present in this file).
 - Fine-tuned pretrained embeddings and large foundation-model embeddings. In the unseen-gene task, fine-tuning cannot update a held-out gene's vector because no training example contains it, so frozen vectors were compared first.
 - A graph neural network. Graph-derived features were tested instead; they are the cheaper test of whether the network carries usable signal.

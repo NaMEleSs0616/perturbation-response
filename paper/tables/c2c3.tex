@@ -1,0 +1,22 @@
+\begin{tabular}{lllllcc}
+\toprule
+Test & Contrast & Dataset & Model & Skill difference (95\% CI) & $p_{\mathrm{Holm}}$ & Supported \\
+\midrule
+C2 & Co-expression $-$ permuted & Replogle K562 CRISPRi & Ridge & +0.028 (+0.019, +0.035) & -- & yes \\
+C2 & Co-expression $-$ permuted & Replogle K562 CRISPRi & MLP ensemble & +0.025 (+0.013, +0.035) & -- & yes \\
+C2 & Co-expression $-$ permuted & Replogle RPE1 CRISPRi & Ridge & +0.018 (+0.005, +0.030) & -- & yes \\
+C2 & Co-expression $-$ permuted & Replogle RPE1 CRISPRi & MLP ensemble & +0.019 (+0.005, +0.033) & -- & yes \\
+C2 & Co-expression $-$ permuted & Tian neurons CRISPRa & Ridge & -0.009 (-0.017, -0.002) & -- & no \\
+C2 & Co-expression $-$ permuted & Tian neurons CRISPRa & MLP ensemble & -0.005 (-0.010, +0.000) & -- & no \\
+C2 & Co-expression $-$ permuted & Tian neurons CRISPRi & Ridge & +0.000 (-0.000, +0.001) & -- & no \\
+C2 & Co-expression $-$ permuted & Tian neurons CRISPRi & MLP ensemble & +0.001 (-0.000, +0.002) & -- & no \\
+C3 & Gene2vec $-$ co-expression & Replogle K562 CRISPRi & Ridge & -0.029 (-0.038, -0.019) & $<$0.001 & no \\
+C3 & Gene2vec $-$ co-expression & Replogle K562 CRISPRi & MLP ensemble & -0.008 (-0.017, +0.004) & $<$0.001 & no \\
+C3 & Gene2vec $-$ co-expression & Replogle RPE1 CRISPRi & Ridge & -0.008 (-0.023, +0.005) & 1 & no \\
+C3 & Gene2vec $-$ co-expression & Replogle RPE1 CRISPRi & MLP ensemble & -0.004 (-0.017, +0.010) & 1 & no \\
+C3 & Gene2vec $-$ co-expression & Tian neurons CRISPRa & Ridge & +0.008 (+0.001, +0.018) & 0.78 & no \\
+C3 & Gene2vec $-$ co-expression & Tian neurons CRISPRa & MLP ensemble & -0.002 (-0.009, +0.006) & 1 & no \\
+C3 & Gene2vec $-$ co-expression & Tian neurons CRISPRi & Ridge & +0.000 (-0.000, +0.000) & 1 & no \\
+C3 & Gene2vec $-$ co-expression & Tian neurons CRISPRi & MLP ensemble & +0.002 (+0.000, +0.003) & 0.029 & yes \\
+\bottomrule
+\end{tabular}

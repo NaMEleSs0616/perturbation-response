@@ -1,0 +1,31 @@
+# Multi-dataset study; implements docs/analysis_plan.md. Do not edit the decision settings below
+# without recording a deviation from the plan.
+plan_file: docs/analysis_plan.md
+plan_sha256: 602693ec8bead09526c51498a22588a5ab3cc24ceaf9943b402b4f55bad273cc
+plan_addenda: [docs/analysis_plan_addendum.md]
+base_config: configs/benchmark_norman.yaml
+seed: 0
+robustness_seeds: [1, 2, 3]
+gene2vec_path: data/external/gene2vec/gene2vec_dim_200_iter_9_w2v.txt
+
+discovery_datasets: [norman2019]
+confirmation_datasets: [replogle2022_k562_essential, replogle2022_rpe1, adamson2016_upr, dixit2016_k562_7d, tian2021_crispra, tian2021_crispri]
+datasets: [norman2019, replogle2022_k562_essential, replogle2022_rpe1, adamson2016_upr, dixit2016_k562_7d, tian2021_crispra, tian2021_crispri]
+
+plan:
+  min_control_cells: 100
+  min_cells_per_condition: 50
+  fallback_min_cells_per_condition: 25
+  min_single_conditions: 30
+  min_target_resolution: 0.8
+
+models: [zero, mean, knn, ridge, gene_loading_ridge, bootstrap_ridge, mlp_ensemble]
+confirmatory_models: [ridge, gene_loading_ridge, mlp_ensemble]
+representation_models: [ridge, mlp_ensemble]
+
+learning_curve:
+  datasets: [replogle2022_k562_essential, replogle2022_rpe1]
+  sizes: [25, 50, 100, 200, 400, 800]
+  repeats: 3
+
+cross_context: [replogle2022_k562_essential, replogle2022_rpe1]

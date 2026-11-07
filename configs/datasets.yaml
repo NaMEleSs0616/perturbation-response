@@ -163,3 +163,47 @@ datasets:
     role: "candidate_cross_context_evaluation"
     preprocessing_config: null
     validation_status: "not_downloaded"
+
+  tian2021_crispra:
+    name: "Tian et al. 2021 - iPSC-derived neurons, CRISPRa"
+    publication: "Tian R, Abarientos A, Hong J, et al. Genome-wide CRISPRi/a screens in human neurons link lysosomal failure to ferroptosis. Nat Neurosci 24:1020-1034 (2021). doi:10.1038/s41593-021-00862-0"
+    source_url: "https://zenodo.org/records/13350497"
+    accession: "Original accession not verified here; see the publication and scPerturb metadata"
+    doi: "10.5281/zenodo.13350497"
+    file: "TianKampmann2021_CRISPRa.h5ad"
+    download_url: "https://zenodo.org/api/records/13350497/files/TianKampmann2021_CRISPRa.h5ad/content"
+    md5: "67a9b324ce46b74a8ca09370de45ded6"
+    size_mb: 154.8
+    download_instructions: "python -m biophysical.cli datasets download tian2021_crispra"
+    license: "Harmonised file: CC-BY-4.0 (scPerturb Zenodo)."
+    organism: "Homo sapiens"
+    assay: "CROP-seq, CRISPRa"
+    cell_context: "iPSC-derived neurons"
+    perturbation_types: ["CRISPRa single-gene"]
+    expected_obs_fields: ["perturbation"]
+    control_label: "control"
+    role: "multi_dataset_study"
+    preprocessing_config: null
+    validation_status: "not_downloaded"
+
+  tian2021_crispri:
+    name: "Tian et al. 2021 - iPSC-derived neurons, CRISPRi"
+    publication: "Tian R, et al. Nat Neurosci 24:1020-1034 (2021). doi:10.1038/s41593-021-00862-0"
+    source_url: "https://zenodo.org/records/13350497"
+    accession: "Original accession not verified here; see the publication and scPerturb metadata"
+    doi: "10.5281/zenodo.13350497"
+    file: "TianKampmann2021_CRISPRi.h5ad"
+    download_url: "https://zenodo.org/api/records/13350497/files/TianKampmann2021_CRISPRi.h5ad/content"
+    md5: "70d260cf5587fc09d759b9f3e32785c6"
+    size_mb: 289.4
+    download_instructions: "python -m biophysical.cli datasets download tian2021_crispri"
+    license: "Harmonised file: CC-BY-4.0 (scPerturb Zenodo)."
+    organism: "Homo sapiens"
+    assay: "CROP-seq, CRISPRi"
+    cell_context: "iPSC-derived neurons"
+    perturbation_types: ["CRISPRi single-gene"]
+    expected_obs_fields: ["perturbation"]
+    control_label: "control"
+    role: "multi_dataset_study"
+    preprocessing_config: null
+    validation_status: "not_downloaded"

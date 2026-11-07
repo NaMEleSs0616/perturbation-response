@@ -14,6 +14,39 @@ Benchmark on Norman et al. 2019 (K562 CRISPRa; 105 single genes, 127 pairs), all
 | Choosing experiments by uncertainty | No demonstrated practical benefit |
 | Prediction intervals | About 86% coverage overall against a 90% target, but 74% on the strongest responders for pairs |
 
+## Research paper: multi-screen study
+
+[paper/main.pdf](paper/main.pdf) reports a study across five Perturb-seq screens: Norman 2019 for discovery, then Replogle K562 and RPE1 and Tian neuron CRISPRa and CRISPRi for confirmation. The analysis plan was fixed before the confirmation screens were analysed ([docs/analysis_plan.md](docs/analysis_plan.md), [addendum](docs/analysis_plan_addendum.md)). In brief:
+
+- **Large screens:** for genes absent from training, learned models beat the mean of other perturbations, but only by about 5% of its squared error.
+- **Discovery screen:** with only ~70 training perturbations, no model beat the mean.
+- **Training size:** performance rises steadily with the number of training perturbations.
+- **Metrics:** MSE is poorly calibrated in most screens.
+
+Reproduce, after downloading the datasets listed in `configs/study.yaml`; the study takes about 2 hours on a laptop:
+
+```bash
+python -m biophysical.cli study run --config configs/study.yaml --out results/study/primary
+```
+
+```bash
+python paper/scripts/pair_analysis.py data/processed/norman2019/<version>
+```
+
+```bash
+python paper/scripts/posthoc_calibration.py results/study/primary
+```
+
+```bash
+python paper/scripts/make_figures.py --study results/study/primary --bench results/norman2019/<run> --pairs results/paper/pair_coefficients.csv
+```
+
+```bash
+cd paper && tectonic main.tex
+```
+
+Every number in the paper text comes from the generated `paper/numbers.tex`.
+
 ## Setup
 
 Requires Python 3.10+ and about 2 GB of free RAM. No GPU or paid service is needed.

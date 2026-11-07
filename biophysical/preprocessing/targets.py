@@ -62,40 +62,49 @@ def parse_condition(condition: str, separator: str = "_", control_tokens: frozen
     return tuple(sorted(t for t in str(condition).split(separator) if t and t not in control_tokens))
 
 
-def _batch_delta(cond_rep: pd.DataFrame, rep_means: np.ndarray, ctrl_by_level: dict[str, np.ndarray], gene_idx: np.ndarray, levels: set[str] | None = None) -> tuple[np.ndarray, int]:
-    """Cell-weighted mean of per-batch deltas for one condition. Returns (delta, n_cells_used)."""
-    total = np.zeros(len(gene_idx), dtype=np.float64)
-    n_used = 0
-    for row_i, r in enumerate(cond_rep.itertuples(index=False)):
-        if r.level not in ctrl_by_level or (levels is not None and r.level not in levels):
-            continue
-        total += r.n_cells * (rep_means[row_i][gene_idx] - ctrl_by_level[r.level][gene_idx])
-        n_used += r.n_cells
-    return (total / n_used if n_used else np.full(len(gene_idx), np.nan)), n_used
+def _control_reference(weights: pd.Series, controls: dict[str, np.ndarray], fallback: np.ndarray) -> np.ndarray:
+    """sum_r w_r ctrl_r over batches. A batch with too few control cells uses the pooled control mean."""
+    out = np.zeros_like(fallback, dtype=np.float64)
+    for level, w in weights.items():
+        if w > 0:
+            out += w * controls.get(level, fallback)
+    return out
 
 
 def build_responses(stats: GroupStats, conditions: pd.DataFrame, gene_names: np.ndarray, gene_idx: np.ndarray,
-                    control_label: str, min_control_cells_per_batch: int = 20) -> dict:
-    """Compute all response arrays for `conditions` over `gene_idx`."""
+                    control_label: str, batch_info: dict, min_control_cells_per_split: int = 10) -> dict:
+    """Compute all response arrays for `conditions` over `gene_idx` (see build_groups for the identity used)."""
     groups = stats.groups
     n_cond, n_genes = len(conditions), len(gene_idx)
+    counts: pd.DataFrame = batch_info["batch_counts"]
+    batch_set: dict[str, str] = batch_info["batch_set"]
 
-    rep_table, rep_means = stats.means("replicate")
+    cond_table, cond_means = stats.means("condition")
+    cond_pos = {c: i for i, c in enumerate(cond_table["condition"])}
+    c_i = cond_pos[control_label]
+    n_c = float(cond_table.loc[c_i, "n_cells"])
+    ctrl_mean = cond_means[c_i]
+    ctrl_var = np.maximum(stats.sum_sq_log[c_i] / n_c - ctrl_mean ** 2, 0)
+    ctrl_mean_norm = stats.sum_norm[c_i] / n_c
+
     split_table, split_means = stats.means("control_split")
-    half_table, half_means = stats.means("half")
-
-    # control means per batch and split, plus per-batch means pooled over splits
     ctrl_split: dict[int, dict[str, np.ndarray]] = {0: {}, 1: {}}
+    pooled_split = {}
+    for h in (0, 1):
+        m = split_table["level"].str.endswith(f"|{h}").to_numpy()
+        n = split_table["n_cells"].to_numpy()[m]
+        pooled_split[h] = (split_means[m] * n[:, None]).sum(axis=0) / max(n.sum(), 1)
     for i, r in enumerate(split_table.itertuples(index=False)):
         level, half = r.level.rsplit("|", 1)
-        if r.n_cells >= min_control_cells_per_batch // 2:
+        if r.n_cells >= min_control_cells_per_split:
             ctrl_split[int(half)][level] = split_means[i]
-    ctrl_rep = {r.level: rep_means[i] for i, r in enumerate(rep_table.itertuples(index=False))
-                if r.condition == control_label and r.n_cells >= min_control_cells_per_batch}
-
-    levels = sorted(ctrl_rep)
-    batch_sets = ({lv for i, lv in enumerate(levels) if i % 2 == 0}, {lv for i, lv in enumerate(levels) if i % 2 == 1})
-    has_batch_split = len(levels) >= 2
+    batch_table, batch_means = stats.means("control_batch")
+    ctrl_batch = {r.level: batch_means[i] for i, r in enumerate(batch_table.itertuples(index=False)) if r.level in batch_set}
+    set_table, set_means = stats.means("batchset")
+    set_lookup = {(r.condition, r.level): i for i, r in enumerate(set_table.itertuples(index=False))}
+    half_table, half_means = stats.means("half")
+    half_ctrl = {r.level: half_means[i] for i, r in enumerate(half_table.itertuples(index=False)) if r.condition == control_label}
+    half_lookup = {(r.condition, r.level): i for i, r in enumerate(half_table.itertuples(index=False))}
 
     Y_fit = np.zeros((n_cond, n_genes), dtype=np.float32)
     Y_eval = np.zeros((n_cond, n_genes), dtype=np.float32)
@@ -105,33 +114,27 @@ def build_responses(stats: GroupStats, conditions: pd.DataFrame, gene_names: np.
     Y_bb = np.full((n_cond, n_genes), np.nan, dtype=np.float32)
     Y_lm = np.zeros((n_cond, n_genes), dtype=np.float32)
     se = np.zeros((n_cond, n_genes), dtype=np.float32)
+    n_fallback = 0
 
-    half_ctrl = {r.level: half_means[i] for i, r in enumerate(half_table.itertuples(index=False)) if r.condition == control_label}
-    half_lookup = {(r.condition, r.level): i for i, r in enumerate(half_table.itertuples(index=False))}
-    cond_table = groups[groups["kind"] == "condition"].reset_index(drop=True)
-    cond_pos = {c: i for i, c in enumerate(cond_table["condition"])}
-    c_i = cond_pos[control_label]
-    n_c = float(cond_table.loc[c_i, "n_cells"])
-    ctrl_mean = stats.sum_log[(groups["kind"] == "condition").to_numpy()][c_i] / n_c
-    ctrl_var = np.maximum(stats.sum_sq_log[c_i] / n_c - ctrl_mean ** 2, 0)
-    ctrl_mean_norm = stats.sum_norm[c_i] / n_c
-    cond_sum_log = stats.sum_log[(groups["kind"] == "condition").to_numpy()]
-
-    rep_groups = {c: g.index.to_numpy() for c, g in rep_table.groupby("condition", observed=True)}
     for i, cond in enumerate(conditions["condition"]):
-        idx = rep_groups[cond]
-        tab, means = rep_table.iloc[idx], rep_means[idx]
-        Y_fit[i], _ = _batch_delta(tab, means, ctrl_split[0], gene_idx)
-        Y_eval[i], _ = _batch_delta(tab, means, ctrl_split[1], gene_idx)
-        if has_batch_split:
-            for out, chosen in ((Y_ba, batch_sets[0]), (Y_bb, batch_sets[1])):
-                out[i], _ = _batch_delta(tab, means, ctrl_rep, gene_idx, levels=chosen)
+        j = cond_pos[cond]
+        n_p = float(cond_table.loc[j, "n_cells"])
+        mean_p = cond_means[j]
+        w = counts.loc[cond] / counts.loc[cond].sum()
+        n_fallback += int(sum(1 for lv, x in w.items() if x > 0 and (lv not in ctrl_split[0] or lv not in ctrl_split[1])))
+        Y_fit[i] = (mean_p - _control_reference(w, ctrl_split[0], pooled_split[0]))[gene_idx]
+        Y_eval[i] = (mean_p - _control_reference(w, ctrl_split[1], pooled_split[1]))[gene_idx]
+        for out, s_name in ((Y_ba, "A"), (Y_bb, "B")):
+            k = set_lookup.get((cond, s_name))
+            if k is None:
+                continue
+            levels = [lv for lv, sname in batch_set.items() if sname == s_name]
+            ws = counts.loc[cond].reindex(levels).fillna(0)
+            if ws.sum() > 0:
+                out[i] = (set_means[k] - _control_reference(ws / ws.sum(), ctrl_batch, ctrl_mean))[gene_idx]
         for out, h in ((Y_a, "0"), (Y_b, "1")):
             k = half_lookup.get((cond, h))
             out[i] = (half_means[k] - half_ctrl[h])[gene_idx] if k is not None else np.nan
-        j = cond_pos[cond]
-        n_p = float(cond_table.loc[j, "n_cells"])
-        mean_p = cond_sum_log[j] / n_p
         var_p = np.maximum(stats.sum_sq_log[j] / n_p - mean_p ** 2, 0)
         se[i] = np.sqrt(var_p[gene_idx] / n_p + ctrl_var[gene_idx] / n_c)
         Y_lm[i] = (np.log1p(stats.sum_norm[j] / n_p) - np.log1p(ctrl_mean_norm))[gene_idx]
@@ -150,4 +153,5 @@ def build_responses(stats: GroupStats, conditions: pd.DataFrame, gene_names: np.
         "control_mean": ctrl_mean[gene_idx].astype(np.float32),
         "control_detection": (stats.n_detected[c_i][gene_idx] / n_c).astype(np.float32),
         "n_control_cells": int(n_c),
+        "n_condition_batches_using_pooled_control": n_fallback,
     }

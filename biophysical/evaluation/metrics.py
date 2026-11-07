@@ -9,7 +9,7 @@ from scipy import stats
 
 METRIC_DIRECTION = {  # +1: larger is better, -1: smaller is better
     "mae": -1, "mse": -1, "pearson": 1, "spearman": 1, "pearson_top": 1, "mae_top": -1, "sign_acc_top": 1, "topk_recall": 1, "r2_vs_zero": 1,
-    "pearson_specific": 1, "pearson_specific_top": 1, "skill_vs_mean": 1, "pearson_interaction": 1, "pearson_interaction_top": 1, "skill_vs_additive": 1,
+    "pearson_specific": 1, "spearman_specific": 1, "pearson_specific_top": 1, "skill_vs_mean": 1, "pearson_interaction": 1, "pearson_interaction_top": 1, "skill_vs_additive": 1,
 }
 
 
@@ -43,6 +43,7 @@ def perturbation_metrics(y: np.ndarray, p: np.ndarray, mask: np.ndarray | None =
         sse_ref = float((dy ** 2).sum())
         specific = {
             "pearson_specific": _corr(dy, dp),
+            "spearman_specific": _corr(dy, dp, "spearman"),
             "pearson_specific_top": _corr(dy[spec_top], dp[spec_top]),
             "skill_vs_mean": 1 - float(((y - p) ** 2).sum()) / sse_ref if sse_ref > 0 else float("nan"),
         }

@@ -146,7 +146,7 @@ def preprocess_h5ad(path: str | Path, cfg: dict[str, Any], out_root: str | Path,
     cfg = {**DEFAULTS, **(cfg or {})}
     path = Path(path)
     raw_md5 = (source or {}).get("md5") or file_md5(path)
-    version = json_digest({"cfg": cfg, "raw_md5": raw_md5, "seed": seed, "schema": 2})
+    version = json_digest({"cfg": cfg, "raw_md5": raw_md5, "seed": seed, "schema": 3})
     out = Path(out_root) / dataset_id / version
     if (out / "meta.json").exists() and not force:
         log.info("processed data already exists: %s", out)
@@ -170,6 +170,8 @@ def preprocess_h5ad(path: str | Path, cfg: dict[str, Any], out_root: str | Path,
 
     # target labels are resolved to var names; conditions with an unresolvable target are excluded
     labels = sorted({g for gs in conditions["genes"] for g in gs.split("+")})
+    if not any(c in var.columns for c in ("ensembl_id", "ensemble_id", "gene_ids")) and var.index.astype(str).str.startswith("ENSG").mean() > 0.5:
+        var = var.assign(ensembl_id=var.index.astype(str))  # gene IDs are the index
     resolved, target_record = resolve_target_genes(labels, var, cfg["resolve_targets_with_hgnc"])
     bad = {u["target"] for u in target_record["unresolved"]}
     if bad:
@@ -189,7 +191,7 @@ def preprocess_h5ad(path: str | Path, cfg: dict[str, Any], out_root: str | Path,
     obs_used[col] = labelled.where(labelled.isin(keep_labels) & cell_keep, None)
 
     log.info("computing group statistics (%s, %d cells x %d genes)", x_layout(path).encoding, *x_layout(path).shape)
-    groups, membership = build_groups(obs_used, col, replicate_col, ctrl, seed=seed)
+    groups, membership, batch_info = build_groups(obs_used, col, replicate_col, ctrl, seed=seed)
     stats = compute_group_stats(path, groups, membership, target_sum=cfg["target_sum"])
 
     gene_names = var.index.astype(str).to_numpy()
@@ -218,7 +220,7 @@ def preprocess_h5ad(path: str | Path, cfg: dict[str, Any], out_root: str | Path,
     gene_idx = np.array(sorted(set(chosen.tolist()) | set(target_idx.tolist())), dtype=np.int64)
     log.info("selected %d genes (%d %s + %d target genes)", gene_idx.size, chosen.size, cfg["gene_set"], gene_idx.size - chosen.size)
 
-    arrays = build_responses(stats, conditions, gene_names, gene_idx, ctrl)
+    arrays = build_responses(stats, conditions, gene_names, gene_idx, ctrl, batch_info)
 
     # co-expression embedding from a capped random sample of control cells
     ctrl_cells = np.flatnonzero((obs[col].astype(object).to_numpy() == ctrl) & cell_keep)
@@ -259,6 +261,8 @@ def preprocess_h5ad(path: str | Path, cfg: dict[str, Any], out_root: str | Path,
         "replicate_col_used": replicate_col,
         "n_batches": int(obs[replicate_col].nunique()) if replicate_col else 1,
         "n_control_cells": arrays["n_control_cells"],
+        "n_condition_batches_using_pooled_control": arrays["n_condition_batches_using_pooled_control"],
+        "batch_sets": batch_info["batch_set"],
         "n_control_cells_for_embedding": int(ctrl_cells.size),
         "n_genes_in_file": int(len(gene_names)),
         "n_genes_used": int(gene_idx.size),

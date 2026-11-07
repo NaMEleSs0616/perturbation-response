@@ -22,7 +22,7 @@ def _manual(path):
 def test_group_stats_match_direct_calculation(fixture, request):
     path = request.getfixturevalue(fixture)
     a, L = _manual(path)
-    groups, M = build_groups(a.obs, "perturbation", "gemgroup", "control", seed=1)
+    groups, M, _ = build_groups(a.obs, "perturbation", "gemgroup", "control", seed=1)
     stats = compute_group_stats(path, groups, M, chunk=13)
     for i, r in groups.iterrows():
         members = M[:, i].toarray().ravel() > 0
@@ -58,7 +58,7 @@ def test_fit_and_eval_targets_use_disjoint_controls(synthetic_h5ad):
     import anndata as ad
 
     obs = ad.read_h5ad(synthetic_h5ad, backed="r").obs
-    groups, M = build_groups(obs, "perturbation", "gemgroup", "control", seed=0)
+    groups, M, _ = build_groups(obs, "perturbation", "gemgroup", "control", seed=0)
     splits = groups[groups.kind == "control_split"]
     A, B = [M[:, splits.index[splits.level.str.endswith(f"|{h}")]].sum(1).A1 > 0 for h in (0, 1)]
     assert not (A & B).any()
@@ -236,3 +236,35 @@ def test_leakage_detector_fires():
         assert_no_leakage(Fold("unseen_combo", 0, np.array([0]), np.array([], dtype=int), np.array([3])), gs)
     with pytest.raises(SplitLeakageError, match="duplicated"):
         assert_no_leakage(Fold("unseen_combo", 0, np.array([0, 1, 3]), np.array([], dtype=int), np.array([4])), gs + [("B", "A")])
+
+
+def test_chunks_respect_value_budget(synthetic_h5ad):
+    from biophysical.data.h5sparse import iter_major_chunks
+
+    sizes, spans = [], []
+    for s, e, block in iter_major_chunks(synthetic_h5ad, chunk=1000, max_nnz=500):
+        sizes.append(block.nnz)
+        spans.append((s, e))
+    assert max(sizes) <= 500 or any(e - s == 1 for s, e in spans)
+    assert spans[0][0] == 0 and all(a[1] == b[0] for a, b in zip(spans, spans[1:]))
+
+
+def test_batch_disjoint_target_matches_direct_calculation(synthetic_h5ad, data):
+    """Y_batch_a uses only batches in set A, for both the condition and its matched controls."""
+    a, L = _manual(synthetic_h5ad)
+    obs = a.obs
+    levels = sorted(obs.gemgroup.astype(str).unique())
+    set_a = set(levels[0::2])
+    rep = obs.gemgroup.astype(str).to_numpy()
+    genes = list(a.var_names)
+    g_idx = [genes.index(g) for g in data.genes]
+    cond = data.conditions["condition"].iloc[3]
+    p_mask = (obs.perturbation == cond).to_numpy()
+    c_mask = (obs.perturbation == "control").to_numpy()
+    total, n = 0, 0
+    for r in set_a:
+        k = (p_mask & (rep == r)).sum()
+        if k:
+            total = total + k * (L[p_mask & (rep == r)].mean(0) - L[c_mask & (rep == r)].mean(0))
+            n += k
+    assert np.allclose(data.Y_batch_a[3], (total / n)[g_idx], atol=1e-3)

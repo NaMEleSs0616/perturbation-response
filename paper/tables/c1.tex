@@ -1,0 +1,18 @@
+\begin{tabular}{llcrrrc}
+\toprule
+Dataset & Model & $\Delta$MSE$\times10^{3}$ vs mean (95\% CI) & Skill & $p$ & $p_{\mathrm{Holm}}$ & Beats mean \\
+\midrule
+Replogle K562 CRISPRi & Ridge & -0.231 (-0.280, -0.187) & 0.025 & $<$0.001 & $<$0.001 & yes \\
+Replogle K562 CRISPRi & Gene-loading ridge & -0.214 (-0.267, -0.165) & 0.018 & $<$0.001 & $<$0.001 & yes \\
+Replogle K562 CRISPRi & MLP ensemble & -0.274 (-0.331, -0.220) & 0.051 & $<$0.001 & $<$0.001 & yes \\
+Replogle RPE1 CRISPRi & Ridge & -0.428 (-0.572, -0.296) & 0.011 & $<$0.001 & $<$0.001 & yes \\
+Replogle RPE1 CRISPRi & Gene-loading ridge & -0.380 (-0.519, -0.251) & 0.010 & $<$0.001 & $<$0.001 & yes \\
+Replogle RPE1 CRISPRi & MLP ensemble & -0.480 (-0.646, -0.324) & 0.052 & $<$0.001 & $<$0.001 & yes \\
+Tian neurons CRISPRa & Ridge & +0.023 (+0.007, +0.043) & -0.010 & 0.99 & 1 & no \\
+Tian neurons CRISPRa & Gene-loading ridge & +0.005 (+0.000, +0.011) & -0.001 & 0.96 & 1 & no \\
+Tian neurons CRISPRa & MLP ensemble & -0.008 (-0.036, +0.023) & 0.012 & 0.0016 & 0.0098 & no \\
+Tian neurons CRISPRi & Ridge & +0.000 (-0.000, +0.001) & -0.000 & 0.96 & 1 & no \\
+Tian neurons CRISPRi & Gene-loading ridge & +0.000 (-0.000, +0.000) & -0.000 & 0.23 & 1 & no \\
+Tian neurons CRISPRi & MLP ensemble & +0.001 (-0.001, +0.002) & -0.001 & 0.91 & 1 & no \\
+\bottomrule
+\end{tabular}

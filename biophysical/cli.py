@@ -8,6 +8,7 @@
     python -m biophysical.cli data preprocess <id> [--config configs/benchmark_norman.yaml]
     python -m biophysical.cli benchmark run [--config configs/benchmark_norman.yaml]
     python -m biophysical.cli benchmark representations [--gene2vec path]
+    python -m biophysical.cli study run [--config configs/study.yaml]
     python -m biophysical.cli predict <perturbation> [--top 20]
     python -m biophysical.cli rank --candidates A,B,C --budget 5 [--strategy hybrid]
     python -m biophysical.cli geo summary GSE133344
@@ -117,6 +118,14 @@ def cmd_benchmark_representations(args) -> int:
     return 0
 
 
+def cmd_study_run(args) -> int:
+    from biophysical.evaluation.study import run_study
+
+    only = [d.strip() for d in args.only.split(",")] if args.only else None
+    print(run_study(args.config, out_dir=args.out, only=only))
+    return 0
+
+
 def cmd_predict(args) -> int:
     from biophysical.api.service import PredictionService
 
@@ -204,6 +213,13 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--no-string", action="store_true")
     sp.add_argument("--gene2vec", default=None, help="path to a text embedding file")
     sp.set_defaults(func=cmd_benchmark_representations)
+
+    stp_ = sub.add_parser("study").add_subparsers(dest="cmd", required=True)
+    sp = stp_.add_parser("run", help="multi-dataset study defined by docs/analysis_plan.md")
+    sp.add_argument("--config", default="configs/study.yaml")
+    sp.add_argument("--out", default=None)
+    sp.add_argument("--only", default=None, help="comma-separated dataset ids (for debugging; not for reported results)")
+    sp.set_defaults(func=cmd_study_run)
 
     sp = sub.add_parser("predict")
     sp.add_argument("perturbation", help="gene symbol, or two symbols joined by '_' for a combination")

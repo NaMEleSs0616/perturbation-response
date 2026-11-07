@@ -44,16 +44,29 @@ class GroupStats:
 
 
 def build_groups(obs: pd.DataFrame, condition_col: str, replicate_col: str | None, control_label: str = "control",
-                 seed: int = 0) -> tuple[pd.DataFrame, sp.csr_matrix]:
-    """Return the group table and a (n_cells, n_groups) binary membership matrix.
+                 seed: int = 0, min_control_cells_per_batch: int = 20) -> tuple[pd.DataFrame, sp.csr_matrix, dict]:
+    """Return the group table, a (n_cells, n_groups) binary membership matrix, and batch information.
 
     Cells whose condition is NaN belong to no group (they are excluded and counted upstream).
-    Group kinds: condition, half, replicate, and control_split (control cells by replicate and
-    random half; used to give training and evaluation targets disjoint control cells).
+    Group kinds, sized so memory grows with the number of conditions rather than conditions x batches:
+      condition      one per condition
+      half           condition x random half of its cells (split-half reproducibility)
+      batchset       condition x one of two disjoint sets of batches (batch-disjoint reproducibility)
+      control_batch  control cells by batch
+      control_split  control cells by batch and random half (disjoint controls for Y_fit and Y_eval)
+    Batch-matched responses then follow from the identity
+      sum_r w_pr (mean_pr - ctrl_r) = mean_p - sum_r w_pr ctrl_r,   w_pr = n_pr / n_p,
+    so per-condition-per-batch means are never needed.
     """
     cond = obs[condition_col].astype(object).where(obs[condition_col].notna(), None).to_numpy()
     halves = np.random.default_rng(seed).integers(0, 2, size=len(obs))
     rep = obs[replicate_col].astype(str).to_numpy() if replicate_col else np.array(["all"] * len(obs))
+
+    labelled = np.array([c is not None for c in cond])
+    is_ctrl = np.array([c == control_label for c in cond])
+    ctrl_counts = pd.Series(rep[is_ctrl]).value_counts()
+    ctrl_levels = sorted(ctrl_counts[ctrl_counts >= min_control_cells_per_batch].index.tolist())
+    batch_set = {lv: ("A" if i % 2 == 0 else "B") for i, lv in enumerate(ctrl_levels)}
 
     index: dict[tuple[str, str, str], int] = {}
     rows, cols = [], []
@@ -68,14 +81,18 @@ def build_groups(obs: pd.DataFrame, condition_col: str, replicate_col: str | Non
             continue
         add(i, "condition", c, "all")
         add(i, "half", c, str(int(halves[i])))
-        add(i, "replicate", c, rep[i])
+        if len(ctrl_levels) >= 2 and rep[i] in batch_set:
+            add(i, "batchset", c, batch_set[rep[i]])
         if c == control_label:
+            add(i, "control_batch", c, rep[i])
             add(i, "control_split", c, f"{rep[i]}|{int(halves[i])}")
 
     membership = sp.csr_matrix((np.ones(len(rows), dtype=np.float32), (rows, cols)), shape=(len(obs), len(index)))
     groups = pd.DataFrame([{"kind": k, "condition": c, "level": l} for (k, c, l) in index])
     groups["n_cells"] = np.asarray(membership.sum(axis=0)).ravel().astype(int)
-    return groups, membership
+    counts = pd.crosstab(pd.Series(cond[labelled], name="condition"), pd.Series(rep[labelled], name="batch"))
+    info = {"batch_counts": counts, "batch_set": batch_set, "control_levels": ctrl_levels, "min_control_cells_per_batch": min_control_cells_per_batch}
+    return groups, membership, info
 
 
 def _lognorm_csc(block: sp.csc_matrix, size_factors: np.ndarray) -> tuple[sp.csc_matrix, sp.csc_matrix]:

@@ -1,0 +1,37 @@
+\begin{tabular}{llccr}
+\toprule
+Stratum & Model & Skill vs mean (95\% CI) & $r$, specific & $n$ \\
+\midrule
+Pair, both singles measured & mlp\_on\_additive & 0.629 (0.588, 0.666) & 0.832 & 127 \\
+ & ridge\_on\_additive & 0.622 (0.581, 0.660) & 0.828 & 127 \\
+ & bootstrap\_ridge\_on\_additive & 0.615 (0.572, 0.653) & 0.825 & 127 \\
+ & scaled\_additive & 0.598 (0.555, 0.638) & 0.790 & 127 \\
+ & knn\_on\_additive & 0.597 (0.539, 0.648) & 0.822 & 127 \\
+ & additive\_plus\_mean\_residual & 0.535 (0.478, 0.589) & 0.810 & 127 \\
+ & additive & 0.485 (0.415, 0.548) & 0.796 & 127 \\
+ & mlp\_ensemble & 0.404 (0.348, 0.460) & 0.655 & 127 \\
+ & ridge & 0.222 (0.147, 0.289) & 0.516 & 127 \\
+ & knn & 0.182 (0.097, 0.261) & 0.487 & 127 \\
+ & bootstrap\_ridge & 0.181 (0.095, 0.261) & 0.498 & 127 \\
+ & gene\_loading\_ridge & 0.078 (0.038, 0.116) & 0.260 & 127 \\
+ & ridge\_singles\_only & 0.055 (-0.012, 0.116) & 0.319 & 127 \\
+ & mean & 0.000 (0.000, 0.000) & -- & 127 \\
+ & gene\_loading\_singles\_only & -0.079 (-0.132, -0.029) & 0.080 & 127 \\
+Pair, one gene unseen & mlp\_ensemble & 0.071 (0.033, 0.108) & 0.309 & 100 \\
+ & ridge & 0.051 (0.018, 0.082) & 0.291 & 100 \\
+ & bootstrap\_ridge & 0.042 (0.011, 0.073) & 0.268 & 100 \\
+ & gene\_loading\_ridge & 0.004 (-0.018, 0.022) & 0.127 & 100 \\
+ & mean & 0.000 (0.000, 0.000) & -- & 100 \\
+ & ridge\_singles\_only & -0.008 (-0.064, 0.044) & 0.175 & 100 \\
+ & gene\_loading\_singles\_only & -0.017 (-0.075, 0.037) & 0.165 & 100 \\
+ & knn & -0.031 (-0.101, 0.040) & 0.240 & 100 \\
+Unseen single gene & mean & 0.000 (0.000, 0.000) & -- & 105 \\
+ & gene\_loading\_singles\_only & -0.003 (-0.007, 0.001) & 0.028 & 105 \\
+ & ridge\_singles\_only & -0.003 (-0.010, 0.003) & 0.016 & 105 \\
+ & gene\_loading\_ridge & -0.018 (-0.037, -0.003) & 0.022 & 105 \\
+ & ridge & -0.124 (-0.234, -0.038) & 0.051 & 105 \\
+ & bootstrap\_ridge & -0.127 (-0.226, -0.046) & 0.024 & 105 \\
+ & mlp\_ensemble & -0.175 (-0.306, -0.062) & 0.062 & 105 \\
+ & knn & -0.288 (-0.372, -0.202) & -0.029 & 105 \\
+\bottomrule
+\end{tabular}

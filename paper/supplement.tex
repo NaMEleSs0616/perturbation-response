@@ -1,0 +1,104 @@
+\section*{Supplementary information}
+\renewcommand{\thetable}{S\arabic{table}}
+\renewcommand{\thefigure}{S\arabic{figure}}
+\setcounter{table}{0}
+\setcounter{figure}{0}
+
+\subsection*{S1. File identities}
+\begin{table}[H]
+\centering\scriptsize
+\caption{SHA-256 hashes of the files that fix the analysis. The study runner recomputes the plan and addendum hashes at launch and records them in \texttt{results/study/primary/study.json}; both matched. Hashes of downloaded data files (MD5, as published by Zenodo) are in \texttt{docs/data\_sources.md} and each dataset's \texttt{download.json}.}
+\label{tab:hashes}
+\begin{tabular}{ll}
+\toprule
+File & SHA-256 \\
+\midrule
+\texttt{docs/analysis\_plan.md} & \texttt{602693ec8bead09526c51498a22588a5ab3cc24ceaf9943b402b4f55bad273cc} \\
+\texttt{docs/analysis\_plan\_addendum.md} & \texttt{48d36c4965da3155e3adb6fdfd14c2a83eaee64ba518643aaccbe4307bfce054} \\
+\texttt{configs/study.yaml} & \texttt{b762a26d9610a8c88d5111a48807447a24110402fbe3d519e10d09e99c51b71c} \\
+\texttt{configs/benchmark\_norman.yaml} & \texttt{4ebdd9199f9d4d4216da69b0cd7aa32b94d27f13d8edaf916d9e93603321e618} \\
+\texttt{requirements-lock.txt} & \texttt{a5336ce52ab9b2cb11d251805b47eb7801917db72a41e67cf0bd08c3b73a3944} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection*{S2. Hyperparameters and seeds}
+\begin{table}[H]
+\centering\scriptsize
+\caption{Settings used in every dataset (from \texttt{configs/benchmark\_norman.yaml} and \texttt{configs/study.yaml}). Hyperparameters marked ``selected'' were chosen per fold on the calibration genes by masked MSE.}
+\label{tab:grids}
+\begin{tabularx}{\linewidth}{lX}
+\toprule
+Component & Setting \\
+\midrule
+Preprocessing & $10^4$ counts per cell, log1p; 2{,}000 genes by binned dispersion in control cells (20 bins, detection $\ge1\%$) plus targets; $\ge50$ cells per condition (25 fallback); co-expression embedding 32 dimensions from $\le$8{,}000 control cells \\
+Splits & 5 folds over target genes, fold seed 0 (robustness seeds 1--3); 15\% of remaining genes for calibration \\
+Ridge & $\alpha\in\{0.1,1,10,100,1000,10000\}$, selected; features standardised on training conditions \\
+Gene-loading ridge & 10 principal components of the training residual matrix; $\alpha$ as ridge, selected \\
+kNN & $k\in\{1,3,5,10\}$, selected; neighbours among conditions with the same number of targets \\
+Bootstrap ridge & 8 bootstrap members; $\alpha$ selected as ridge \\
+MLP ensemble & 5 members, each on a bootstrap resample, member seed $1000m$; hidden layers 128 and 64 (ReLU), dropout 0.1; output 20 PCA components of training residuals; Huber loss ($\delta=1$); AdamW, learning rate $10^{-3}$, weight decay $10^{-3}$, batch 32; at most 400 epochs, early stopping with patience 40 on calibration loss \\
+Intervals & 90\% per-gene, split-conformal style on calibration-gene residuals; per-gene scale = median absolute residual, floored at 10\% of the median scale \\
+Ranking & top 20\% of held-out perturbations by predicted RMS response \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection*{S3. Discovery benchmark on Norman 2019}
+The discovery benchmark trained on single genes and pairs together and evaluated three held-out strata in the unseen-gene task, plus pairs whose singles were measured (Table~\ref{tab:discovery}). These analyses informed the models, baselines and metrics in the analysis plan. Scaled additive, additive plus mean residual, singles-only models, the non-additive and top-gene coverage metrics, and the pair-ranking analyses were all added after first results on these same folds. Their discovery estimates are therefore optimistic in an unknown direction and are not confirmatory.
+
+\begin{table}[H]
+\centering\scriptsize
+\caption{Discovery benchmark (Norman 2019; 5 folds, seed 0). Models trained with pairs and singles. Skill is relative to the training mean; $r$, specific is the correlation of deviations from it. In the confirmation study, models were trained on single-gene conditions only, which changes the unseen-single results (main text).}
+\label{tab:discovery}
+\input{tables/discovery}
+\end{table}
+
+\subsection*{S4. Robustness to the fold partition}
+Pre-specified analysis D4 repeated the unseen-gene task with three further fold partitions (Table~\ref{tab:seeds}).
+
+\begin{table}[H]
+\centering\scriptsize
+\caption{Mean skill relative to the training mean on held-out genes, for four fold partitions. Seed 0 is the primary analysis.}
+\label{tab:seeds}
+\input{tables/seeds}
+\end{table}
+
+\subsection*{S5. Distribution of per-perturbation differences behind C1 (post hoc)}
+Figure~\ref{fig:c1dist} and Table~\ref{tab:c1med} show the full distribution of per-perturbation MSE differences, with the median alongside the mean. In the Replogle screens the median difference favours every model and the distributions are left-skewed: a minority of perturbations is predicted much better than by the mean. In Tian CRISPRa, the MLP is better for most perturbations, but a few large right-tail losses move the mean towards zero (main text).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{figures/figS1_c1_distribution.pdf}
+\caption{Per-perturbation difference in MSE between each model and the mean baseline (negative favours the model), on a symmetric-log axis. Each point is one held-out gene. Orange: median; dashed black: mean.}
+\label{fig:c1dist}
+\end{figure}
+
+\begin{table}[H]
+\centering\scriptsize
+\caption{Mean and median per-perturbation $\Delta$MSE $\times10^3$ (model $-$ mean), with bootstrap 95\% intervals for the median, and the fraction of perturbations on which the model is better.}
+\label{tab:c1med}
+\resizebox{0.9\linewidth}{!}{\input{tables/c1_medians}}
+\end{table}
+
+\subsection*{S6. Feature ablation and control-cell check (post hoc)}
+\begin{table}[H]
+\centering\scriptsize
+\caption{Skill on held-out single genes with different feature sets (primary folds, seed 0). The last column is the paired difference from the primary features with a 95\% bootstrap interval. ``Primary, training-half controls'' recomputes the co-expression embedding and both baseline features from the control cells that contribute only to training targets.}
+\label{tab:ablation}
+\resizebox{\linewidth}{!}{\input{tables/ablation}}
+\end{table}
+
+\subsection*{S7. Interval calibration stratified by predicted magnitude (post hoc)}
+\begin{table}[H]
+\centering\scriptsize
+\caption{Coverage of nominal 90\% per-gene intervals on held-out single genes. ``Standard'' calibrates one quantile over all genes. ``Stratified'' calibrates it within five strata of predicted deviation from the training mean. Top-20 responders are each perturbation's 20 genes with the largest observed deviation. The width ratio compares the mean interval width on those genes (stratified / standard).}
+\label{tab:intervals}
+\input{tables/intervals}
+\end{table}
+
+\subsection*{S8. Network features in the discovery dataset}
+On Norman, gene vectors derived from STRING \citep{szklarczyk2023} (version 12.5; one-hop averages of co-expression vectors, and spectral embeddings of the combined-score and experimental-plus-curated graphs) were compared with co-expression features. None gave positive skill on unseen single genes, and none improved consistently over co-expression across models and strata. STRING features were therefore not carried into the analysis plan. The full results are in the repository (\texttt{docs/benchmarking.md}).
+
+\subsection*{S9. Process disclosure}
+Software errors corrected during development: a \texttt{.gitignore} rule that excluded a source folder from the first commit; a GEO adapter that accepted a non-listing page; and a numerical failure of STRING spectral features, where eigenvectors localised on small graph components (skill as low as $-21.8$). The latter was fixed by standardising and clipping, and the first run is reported in the repository. None of these affected the confirmatory study, which was run once with the code as frozen at launch. Before launch, inclusion checks and preprocessing (no models or metrics) were run on the confirmation datasets to test the software. Also before launch, the response computation was rewritten to use the identity in Eq.~1, so that memory scales with conditions rather than conditions $\times$ batches; on the discovery dataset this reproduced the earlier targets to within $3\times10^{-6}$. After launch, a guard for an empty-input edge case was added to the test code. All analyses labelled post hoc were run after the study had finished, and those in Sections S5--S7 were added in response to review.

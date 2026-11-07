@@ -1,0 +1,108 @@
+\section{Results}
+
+\subsection{Five screens, one protocol}
+Of six candidate confirmation datasets, four met the pre-specified inclusion rules (Table~\ref{tab:inclusion}). The Adamson unfolded-protein-response screen has no cell labelled \texttt{control} in the harmonised file. The Dixit screen labels conditions by guide, which leaves 27 qualifying conditions, below the minimum of 30. Both were excluded as the plan required, rather than by adjusting rules after inspection. Together with the discovery dataset, the study covers \numNPerturbationsTotal{} single-gene perturbations: \numNNorman{} in Norman (K562, CRISPRa), \numNReplogleKEssential{} and \numNReplogleRpe{} in the Replogle K562 and RPE1 CRISPRi screens, and \numNTianCrispra{} and \numNTianCrispri{} in the Tian iPSC-derived-neuron CRISPRa and CRISPRi screens.
+
+\begin{table}[t]
+\centering\small
+\caption{Datasets and pre-specified inclusion outcomes. Perturbations are single-gene conditions with enough cells whose target is a measured gene. Batches are 10x lanes or the dataset's batch annotation.}
+\label{tab:inclusion}
+\resizebox{\linewidth}{!}{\input{tables/inclusion}}
+\end{table}
+
+\subsection{How much of a perturbation's response is measurable varies widely across screens}
+We first asked how reproducible each perturbation-specific response is: the response minus the mean response of other perturbations, re-estimated from two disjoint sets of batches. Mean batch-disjoint correlations were \numReproBatchNorman{} (Norman), \numReproBatchReplogleRpe{} (RPE1), \numReproBatchReplogleKEssential{} (K562), \numReproBatchTianCrispra{} (Tian CRISPRa) and \numReproBatchTianCrispri{} (Tian CRISPRi). The corresponding technical reproducibility limits (Spearman--Brown estimates of the correlation a noiseless predictor could reach within the same experiment) were \numCeilBatchNorman, \numCeilBatchReplogleRpe, \numCeilBatchReplogleKEssential, \numCeilBatchTianCrispra{} and \numCeilBatchTianCrispri. Because the batches are technical lanes, these limits omit biological replicate variation; against an independently repeated experiment, the attainable correlation would be lower. The specific response reproduced ($r\ge0.5$) for \numFracReproNorman\% of Norman perturbations, \numFracReproReplogleRpe\% (RPE1), \numFracReproReplogleKEssential\% (K562), \numFracReproTianCrispra\% (Tian CRISPRa) and \numFracReproTianCrispri\% (Tian CRISPRi). Many perturbations in the large CRISPRi screens, and nearly all in the neuron screens, have specific responses that are hard to distinguish from noise at the depth measured.
+
+This directly affects which metrics are informative (Fig.~\ref{fig:calibration}). In the pre-specified calibration analysis, a technical duplicate beat the mean baseline on MSE for \numCalNormanMse{} of Norman perturbations, but only \numCalReplogleRpeMse{} (RPE1), \numCalReplogleKEssentialMse{} (K562), \numCalTianCrispraMse{} and \numCalTianCrispriMse{} (Tian). In most screens, then, MSE ranks a half-data replicate of the truth below an uninformative prediction for many perturbations, which agrees with \citet{miller2026}. Perturbation-specific correlation looked perfectly calibrated against the mean, but only because the mean has no defined specific correlation. When a zero prediction was added as a second uninformative control (post hoc), the duplicate won on specific correlation for \numCalBestNormanPearsonSpecific{} of Norman perturbations, \numCalBestReplogleRpePearsonSpecific{} (RPE1) and \numCalBestReplogleKEssentialPearsonSpecific{} (K562), and for almost none in the neuron screens. No single per-perturbation metric was calibrated across all screens. Conclusions below therefore draw on several metrics and on aggregates across perturbations.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/fig6_calibration.pdf}
+\caption{\textbf{Metric calibration.} Fraction of single-gene perturbations for which a technical duplicate (the response from half of the cells and controls) scores better than an uninformative prediction of the other half. \textbf{a}, against the mean of other perturbations (pre-specified, addendum E4). \textbf{b}, against the better of the mean and a zero prediction (post hoc). Undefined correlations of uninformative predictions count as 0.}
+\label{fig:calibration}
+\end{figure}
+
+\subsection{Unseen genes: small but reproducible gains in large screens only}
+The pre-specified confirmatory test C1 asked whether any learned model had lower MSE than the mean of training perturbations on held-out genes (Table~\ref{tab:c1}). The prediction of the discovery analysis, that none would, was \emph{refuted} in both Replogle screens: ridge regression, gene-loading ridge and the MLP ensemble all had lower MSE than the mean (all Holm-adjusted $p<0.001$; \numNCOneBeat{} of \numNCOneTests{} tests). The gains were small. Skill relative to the mean was \numSkillReplogleKEssentialMlpEnsemble{} (95\% CI \numSkillLoReplogleKEssentialMlpEnsemble--\numSkillHiReplogleKEssentialMlpEnsemble) for the MLP in K562 and \numSkillReplogleRpeMlpEnsemble{} (\numSkillLoReplogleRpeMlpEnsemble--\numSkillHiReplogleRpeMlpEnsemble) in RPE1, so the models removed about 5\% of the squared error left by the mean (Fig.~\ref{fig:unseen}a). The result was stable across three alternative fold partitions (Supplement). In the discovery dataset, no model was better than the mean (MLP skill \numSkillNormanMlpEnsemble, CI \numSkillLoNormanMlpEnsemble{} to \numSkillHiNormanMlpEnsemble). Norman is the screen whose metrics are best calibrated, so this is a genuine negative result rather than a measurement artefact.
+
+In the neuron screens, no model met the pre-specified criterion, but one came close and the result needs care. In Tian CRISPRa, the MLP's signed-rank test was significant after Holm correction ($p_{\mathrm{Holm}}=0.0098$), but the bootstrap interval of its mean MSE difference included zero (Table~\ref{tab:c1}). The two parts of the rule disagree because the per-perturbation differences are skewed (Supplementary Fig.~\ref{fig:c1dist}). The MLP was better for \numTianAMlpFracBetter\% of perturbations, with a median difference of \numTianAMlpMedian{} ($\times10^{-3}$; 95\% CI \numTianAMlpMedianLo{} to \numTianAMlpMedianHi), but a few large losses brought the mean difference to \numTianAMlpMean. We therefore report that the MLP was typically, but not on average, better than the mean in this screen. The effect is small (skill \numSkillTianCrispraMlpEnsemble) and sits in a screen where MSE failed the calibration test, so we give it little weight in either direction. Beyond that, the C1 result in the neuron screens is uninformative rather than negative. With about 430 control cells, the training mean carries control-sampling noise that disjoint evaluation controls correctly fail to reward: predicting no change scored skill \numZeroSkillTianCrispra{} and \numZeroSkillTianCrispri{} relative to the mean.
+
+Perturbation-specific correlations followed the same pattern (Fig.~\ref{fig:unseen}b). They reached \numSpecReplogleKEssentialMlpEnsemble{} (K562) and \numSpecReplogleRpeMlpEnsemble{} (RPE1) for the MLP, far below the technical reproducibility limits of \numCeilBatchReplogleKEssential{} and \numCeilBatchReplogleRpe. They were also only modestly above two controls: an MLP with permuted co-expression features (\numShufSpecReplogleKEssentialMlpEnsemble, \numShufSpecReplogleRpeMlpEnsemble), and the zero prediction (\numZeroSpecReplogleKEssential, \numZeroSpecReplogleRpe). Restricting to perturbations with reproducible responses (post hoc) separated models from controls more clearly. In K562 (\numNReproReplogleKEssential{} perturbations), ridge reached skill \numRepSkillReplogleKEssentialRidge{} and specific correlation \numRepSpecReplogleKEssentialRidge, against \numRepSkillReplogleKEssentialShufMlp{} and \numRepSpecReplogleKEssentialShufMlp{} for the permuted-feature MLP. In RPE1 (\numNReproReplogleRpe), the MLP reached \numRepSkillReplogleRpeMlp{} and \numRepSpecReplogleRpeMlp, against \numRepSkillReplogleRpeShufMlp{} and \numRepSpecReplogleRpeShufMlp. In Norman (\numNReproNorman{} reproducible perturbations), nothing improved on the mean even in this subset.
+
+\begin{table}[t]
+\centering\scriptsize
+\caption{Confirmatory test C1: learned models versus the mean baseline on held-out genes. $\Delta$MSE is the mean per-perturbation difference (model $-$ mean), multiplied by $10^3$; negative favours the model. $p$: one-sided Wilcoxon signed-rank; Holm correction across all 12 tests. ``Beats mean'' requires $p_{\mathrm{Holm}}<0.05$ and a 95\% bootstrap interval below 0.}
+\label{tab:c1}
+\resizebox{\linewidth}{!}{\input{tables/c1}}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/fig2_unseen_genes.pdf}
+\caption{\textbf{Prediction for genes absent from training.} Means over held-out perturbations with 95\% bootstrap intervals (5 folds, seed 0). Blue: pre-specified learned models with co-expression features. Grey: controls, namely the MLP with co-expression features permuted among genes (target baseline expression retained) and the zero prediction. \textbf{a}, skill relative to the training mean (0 = mean baseline). \textbf{b}, Pearson correlation of the perturbation-specific response, with the batch-disjoint technical reproducibility limit (dashed).}
+\label{fig:unseen}
+\end{figure}
+
+\subsection{Co-expression features help in large screens; pretrained Gene2vec does not add to them}
+Test C2 compared co-expression features with the same features permuted among genes; both kept the target's own control-cell expression. Co-expression improved skill for both ridge and the MLP in both Replogle screens (\numNCTwoInformative{} of \numNCTwoTests{} tests), but not in the neuron screens (Table~\ref{tab:c2c3}). The plan specified no multiplicity correction for C2. With a post-hoc Holm correction over its eight two-sided Wilcoxon tests, all four Replogle results remain significant (largest adjusted $p=\numCTwoMaxHolmReplogle$) and none of the neuron results are ($p_{\mathrm{Holm}}\ge\numCTwoMinHolmTian$). This shows that co-expression carries information about an unseen gene's response. It does not show that the information is practically useful: the gains are a few hundredths of skill (Table~\ref{tab:c2c3}). Test C3 asked whether frozen Gene2vec embeddings, trained on co-expression across 984 public datasets \citep{du2019gene2vec}, improve on co-expression from the screen's own control cells. They did not in general. Gene2vec was significantly \emph{worse} for ridge in K562. Only one of \numNCThreeTests{} tests favoured Gene2vec (MLP, Tian CRISPRi), by a skill difference of about 0.002, which is of no practical consequence.
+
+\begin{table}[t]
+\centering\scriptsize
+\caption{Confirmatory tests C2 and C3 on held-out genes. Skill differences are per-perturbation paired means with 95\% bootstrap intervals. C2 is supported (co-expression informative) if the interval lies above 0. C3 uses a two-sided Wilcoxon test, Holm-corrected across its 8 tests.}
+\label{tab:c2c3}
+\resizebox{\linewidth}{!}{\input{tables/c2c3}}
+\end{table}
+
+\subsection{What co-expression features carry (post hoc)}
+To separate the components of the primary features, we refit ridge and the MLP on the primary folds with each component alone (Fig.~\ref{fig:ablation}; Supplementary Table~\ref{tab:ablation}). In both Replogle screens, co-expression alone matched the full feature set: MLP skill \numAblReplogleKEssentialMlpEnsembleCoexpressionOnly{} versus \numAblReplogleKEssentialMlpEnsembleFull{} in K562, and \numAblReplogleRpeMlpEnsembleCoexpressionOnly{} versus \numAblReplogleRpeMlpEnsembleFull{} in RPE1. The target's own control-cell expression level and detection rate behaved differently for the two models. With these two baseline features alone, the MLP reached about two-thirds of the full gain (\numAblReplogleKEssentialMlpEnsembleBaselineBoth{} and \numAblReplogleRpeMlpEnsembleBaselineBoth), whereas ridge reached almost none (\numAblReplogleKEssentialRidgeBaselineBoth{} and \numAblReplogleRpeRidgeBaselineBoth).
+
+A large part of the usable signal is therefore available from how strongly and how broadly the target is expressed in unperturbed cells. The relation is not a simple monotonic one: target expression correlates only weakly with response magnitude (Spearman $\rho=0.16$ in K562 and $0.06$ in RPE1, post hoc), so the MLP's gain from these two features reflects nonlinear structure that our analyses do not resolve. The co-expression embedding largely subsumes this signal (adding the baseline features changed skill by at most 0.005) and adds a further component that a linear model can use. That component is consistent with broad transcriptional programmes shared by co-regulated genes, rather than with mechanism-specific information. These features are statistical associations measured in unperturbed cells, and our analyses do not show that they reflect causal regulatory relationships.
+
+Because the control-derived features had used control cells from both random halves, including the half behind the evaluation targets, we recomputed them from the training half alone. Performance was unchanged: MLP skill \numAblReplogleKEssentialMlpEnsembleFullSplit{} (K562) and \numAblReplogleRpeMlpEnsembleFullSplit{} (RPE1), against \numAblReplogleKEssentialMlpEnsembleFull{} and \numAblReplogleRpeMlpEnsembleFull{} with the primary features. The results do not depend on that overlap.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\linewidth]{figures/fig7_feature_ablation.pdf}
+\caption{\textbf{Feature ablation in the large screens} (post hoc). Skill on held-out single genes with each feature component alone, and with the primary features recomputed from training-half control cells only. Means with 95\% bootstrap intervals; grey: ridge, blue: MLP ensemble.}
+\label{fig:ablation}
+\end{figure}
+
+\subsection{Gains grow steadily with the number of training perturbations}
+Subsampling training perturbations within fixed folds (exploratory E1) showed a steady increase without a clear plateau (Fig.~\ref{fig:size}). Specific correlation rose from about 0.04 with 25 training perturbations to \numLcSpecFullReplogleKEssentialRidge{} (K562) and \numLcSpecFullReplogleRpeRidge{} (RPE1) with all of them, about 1{,}000, roughly linearly in the logarithm of training size. Skill rose too but remained small (ridge: \numLcFullReplogleKEssentialRidge{} and \numLcFullReplogleRpeRidge{}). With around 70 training perturbations, the size of the Norman training folds, skill in the Replogle screens is near zero and specific correlation below 0.1, consistent with the failure in the discovery screen.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.92\linewidth]{figures/fig3_training_size.pdf}
+\caption{\textbf{Performance against training-set size} (exploratory). Training perturbations subsampled within each fold (three draws per size), with test perturbations fixed. Means over folds and draws $\pm$1.96 standard errors.}
+\label{fig:size}
+\end{figure}
+
+\subsection{A measurement in another cell line is about as informative as the best model}
+For \numNSharedKToRpe{} genes knocked down in both Replogle screens (exploratory E2), the measured response in one cell line was a poor predictor in the other when used as is (skill \numCcTransferRawKToRpe{} for K562$\to$RPE1, \numCcTransferRawRpeToK{} for RPE1$\to$K562), because responses differ systematically in scale between the lines (Fig.~\ref{fig:cross}). Taking the source screen's specific response, rescaled by one factor fitted on other genes and added to the target screen's mean, gave skill \numCcTransferDeviationScaledKToRpe{} (\numCcLoTransferDeviationScaledKToRpe--\numCcHiTransferDeviationScaledKToRpe) and \numCcTransferDeviationScaledRpeToK{} (\numCcLoTransferDeviationScaledRpeToK--\numCcHiTransferDeviationScaledRpeToK), with specific correlation \numCcSpecTransferDeviationScaledKToRpe{} in both directions. That is comparable to the best unseen-gene model on the same targets. A direct measurement of the same perturbation in a related cell line therefore carries only about as much transferable, gene-specific information as the models extract from co-expression and training-set structure.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\linewidth]{figures/fig4_cross_context.pdf}
+\caption{\textbf{Transfer between cell lines} (exploratory). Targets knocked down in both Replogle screens, scored on genes measured in both. ``Rescaled'': the target screen's mean plus the source screen's specific response, multiplied by one factor fitted on other targets. The unseen-gene MLP is shown on the same targets, scored on the target screen's full gene set.}
+\label{fig:cross}
+\end{figure}
+
+\subsection{Ranking strong responders}
+For prioritising experiments, the relevant question is whether the strongest responses can be found among untested genes. Ranking held-out genes by predicted response magnitude, the top 20\% contained \numPrecReplogleKEssentialRidge{} (K562) and \numPrecReplogleRpeRidge{} (RPE1) of the truly strongest 20\% for ridge, against 0.20 expected by chance: about 1.7-fold enrichment. In Norman, rankings were no better than chance (ridge \numPrecNormanRidge, MLP \numPrecNormanMlpEnsemble). In the neuron screens, results varied between models around chance, with wide intervals given fewer than 40 genes in the top 20\%.
+
+\subsection{Selected gene pairs: sub-additive combination, captured by a single scale factor}
+In the discovery screen, pairs whose single-gene responses were measured were predicted well by the sum of the singles (skill \numPairskillAdditive{} relative to the mean of pairs). A single global scale factor applied to that sum, fitted on training pairs, raised skill to \numPairskillScaledAdditive. Ridge and MLP models of the residual from the additive prediction reached \numPairskillRidgeOnAdditive{} and \numPairskillMlpOnAdditive, but their MSE was not distinguishable from the scaled sum (difference \numPairMseDiffScaled, 95\% CI \numPairMseDiffScaledLo{} to \numPairMseDiffScaledHi; Fig.~\ref{fig:pairs}b).
+
+Because noise in the estimated single responses would bias a fitted scale factor towards zero, we estimated it per pair with an instrumental-variable estimator using independent halves of the single-perturbation cells. The median coefficient was \numBetaIvMedian{} (95\% CI \numBetaIvLo--\numBetaIvHi; least squares \numBetaOlsMedian), and \numFracBelowOne\% of the \numNPairs{} pairs were below 1 (Fig.~\ref{fig:pairs}a). The single responses were measured reliably (median split-half $r$ \numSinglesReliability), so the correction was small. Most of these pairs therefore respond less than the sum of their singles. The pairs were chosen from a genetic-interaction map \citep{norman2019} and are enriched for interactions, so this result describes sub-additivity among selected, interaction-enriched pairs and should not be generalised to arbitrary gene pairs. No other included screen contains pairs, so it is not confirmed.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/fig5_pairs.pdf}
+\caption{\textbf{Gene pairs in the discovery screen} (exploratory). \textbf{a}, per-pair coefficient $\beta$ in pair $\approx\beta\,$(A+B), estimated with an instrumental variable to remove attenuation from measurement error. \textbf{b}, skill on held-out pairs whose singles were measured; models in blue learn a residual from the additive prediction.}
+\label{fig:pairs}
+\end{figure}
+
+\subsection{Intervals fail exactly where predictions would be used}
+Per-gene 90\% intervals calibrated on held-out residuals covered \numCovReplogleKEssential{} (K562), \numCovReplogleRpe{} (RPE1) and \numCovNorman{} (Norman) of genes overall, close to their target. On each perturbation's 20 most strongly responding genes, which are the genes that would guide an experiment, coverage fell to \numCovTopReplogleKEssential, \numCovTopReplogleRpe{} and \numCovTopNorman. Intervals calibrated over all genes are dominated by genes that barely respond.
+
+We tested a remedy post hoc: calibrating the interval quantile separately within strata of \emph{predicted} response magnitude, which is available at prediction time (Supplementary Table~\ref{tab:intervals}). It barely helped. For the MLP, top-responder coverage moved from \numTopStdReplogleKEssentialMlpEnsemble{} to \numTopStrReplogleKEssentialMlpEnsemble{} in K562 and from \numTopStdReplogleRpeMlpEnsemble{} to \numTopStrReplogleRpeMlpEnsemble{} in RPE1. The reason is that the models do not predict which genes will respond strongly, so strata of predicted magnitude barely separate the genes that need wider intervals. Calibrating on the observed response would require information that is unavailable for an unmeasured perturbation. Until a model can identify its strongest responders, per-gene uncertainty for those genes cannot be trusted, which directly limits the use of these predictions for prioritising experiments.
