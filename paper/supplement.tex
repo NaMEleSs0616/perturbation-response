@@ -97,8 +97,88 @@ Figure~\ref{fig:c1dist} and Table~\ref{tab:c1med} show the full distribution of 
 \input{tables/intervals}
 \end{table}
 
-\subsection*{S8. Network features in the discovery dataset}
+\subsection*{S8. Second-revision analyses (post hoc)}
+All analyses in this section used a further preprocessing pass that reproduced every primary target exactly (maximum difference 0).
+
+\begin{table}[H]
+\centering\scriptsize
+\caption{Technical reproducibility limits. Limits for the primary batch partition with 95\% bootstrap intervals over perturbations; range over five partitions of batches into two sets; limits from random cell halves; and the fraction of perturbations whose specific response reproduces ($r\ge0.5$) in the primary partition. Tian CRISPRa has two batches, so all its partitions are the same contrast.}
+\label{tab:limits}
+\resizebox{\linewidth}{!}{\input{tables/limits}}
+\end{table}
+
+\begin{table}[H]
+\centering\scriptsize
+\caption{Duplicate win rates with 95\% Wilson intervals, against the mean of other perturbations and, separately, against a zero prediction.}
+\label{tab:discrimination}
+\input{tables/discrimination}
+\end{table}
+
+\begin{table}[H]
+\centering\scriptsize
+\caption{The duplicate's MSE win rate against the mean, within thirds of perturbations ranked by split-half reproducibility of their specific response. Discrimination follows measurement reliability.}
+\label{tab:discrel}
+\input{tables/discrimination_reliability}
+\end{table}
+
+\begin{table}[H]
+\centering\scriptsize
+\caption{Skill / specific correlation on held-out single genes for different output gene sets. Models were fitted to all detected genes. ``Silent in controls'': detected in fewer than 1\% of control cells; there are none in the Replogle files, which contain only expressed genes.}
+\label{tab:genesets}
+\resizebox{\linewidth}{!}{\input{tables/gene_sets}}
+\end{table}
+
+\begin{table}[H]
+\centering\scriptsize
+\caption{Mean skill (primary genes) across five independent random splits of control cells, and, for the MLP, across five initialisation seeds.}
+\label{tab:variability}
+\input{tables/variability}
+\end{table}
+
+\begin{table}[H]
+\centering\scriptsize
+\caption{Bootstrap intervals that resample perturbations versus clusters of co-expressed targets ($k$-means, $k\approx\sqrt{n}$).}
+\label{tab:block}
+\resizebox{\linewidth}{!}{\input{tables/block_bootstrap}}
+\end{table}
+
+\begin{table}[H]
+\centering\scriptsize
+\caption{Skill by thirds of perturbations ranked by cell count, the cell-weighted mean, and the mean over conditions with at least 100 cells.}
+\label{tab:cellcount}
+\resizebox{\linewidth}{!}{\input{tables/cell_count}}
+\end{table}
+
+\begin{table}[H]
+\centering\scriptsize
+\caption{Consistent estimands for all confirmatory tests: mean and median paired differences with 95\% bootstrap intervals, and the share of perturbations favouring the first-named arm (C1: model; C2: co-expression; C3: Gene2vec). $p$: Holm-adjusted for C1 and C3, unadjusted for C2.}
+\label{tab:estimands}
+\resizebox{\linewidth}{!}{\input{tables/estimands}}
+\end{table}
+
+\begin{table}[H]
+\centering\scriptsize
+\caption{Selection-independent reproducibility analysis. Perturbations were selected using two cell halves within batch set A and scored against the response from batch set B. Models were trained on the primary training targets, which share some control cells with set B; this affects models and the mean baseline alike, but not the zero prediction.}
+\label{tab:repind}
+\resizebox{\linewidth}{!}{\input{tables/reproducible_independent}}
+\end{table}
+
+\begin{table}[H]
+\centering\scriptsize
+\caption{Interval coverage on all genes, on the 20 genes with the largest predicted deviation, and on the 20 with the largest observed deviation (selected on the outcome).}
+\label{tab:ivsel}
+\input{tables/intervals_selection}
+\end{table}
+
+\begin{table}[H]
+\centering\scriptsize
+\caption{Precision of ranking held-out genes by predicted response magnitude, with 95\% bootstrap intervals and permutation $p$-values against random rankings (2{,}000 permutations).}
+\label{tab:ranking}
+\resizebox{\linewidth}{!}{\input{tables/ranking}}
+\end{table}
+
+\subsection*{S9. Network features in the discovery dataset}
 On Norman, gene vectors derived from STRING \citep{szklarczyk2023} (version 12.5; one-hop averages of co-expression vectors, and spectral embeddings of the combined-score and experimental-plus-curated graphs) were compared with co-expression features. None gave positive skill on unseen single genes, and none improved consistently over co-expression across models and strata. STRING features were therefore not carried into the analysis plan. The full results are in the repository (\texttt{docs/benchmarking.md}).
 
-\subsection*{S9. Process disclosure}
-Software errors corrected during development: a \texttt{.gitignore} rule that excluded a source folder from the first commit; a GEO adapter that accepted a non-listing page; and a numerical failure of STRING spectral features, where eigenvectors localised on small graph components (skill as low as $-21.8$). The latter was fixed by standardising and clipping, and the first run is reported in the repository. None of these affected the confirmatory study, which was run once with the code as frozen at launch. Before launch, inclusion checks and preprocessing (no models or metrics) were run on the confirmation datasets to test the software. Also before launch, the response computation was rewritten to use the identity in Eq.~1, so that memory scales with conditions rather than conditions $\times$ batches; on the discovery dataset this reproduced the earlier targets to within $3\times10^{-6}$. After launch, a guard for an empty-input edge case was added to the test code. All analyses labelled post hoc were run after the study had finished, and those in Sections S5--S7 were added in response to review.
+\subsection*{S10. Process disclosure}
+Software errors corrected during development: a \texttt{.gitignore} rule that excluded a source folder from the first commit; a GEO adapter that accepted a non-listing page; and a numerical failure of STRING spectral features, where eigenvectors localised on small graph components (skill as low as $-21.8$). The latter was fixed by standardising and clipping, and the first run is reported in the repository. None of these affected the confirmatory study, which was run once with the code as frozen at launch. Before launch, inclusion checks and preprocessing (no models or metrics) were run on the confirmation datasets to test the software. Also before launch, the response computation was rewritten to use the identity in Eq.~1, so that memory scales with conditions rather than conditions $\times$ batches; on the discovery dataset this reproduced the earlier targets to within $3\times10^{-6}$. After launch, a guard for an empty-input edge case was added to the test code. All analyses labelled post hoc were run after the study had finished; those in Sections S5--S8 were added in response to two rounds of review. One second-revision model run failed because the Replogle files contain no genes silent in controls, so an empty gene subset reached the metric code; empty subsets now return missing values and the run was repeated. The plan files were first committed to version control after the confirmatory study had run.

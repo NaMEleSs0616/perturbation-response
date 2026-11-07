@@ -92,7 +92,7 @@ def fig_skill(S: dict, out: Path, N: Numbers) -> None:
     """Forest plot on unseen genes: learned models (blue) and uninformative controls (grey)."""
     p = primary(S["frame"])
     entries = [("coexpression", "ridge", "Ridge", BLUE), ("coexpression", "gene_loading_ridge", "Gene-loading ridge", BLUE), ("coexpression", "mlp_ensemble", "MLP ensemble", BLUE),
-               ("shuffled_coexpression", "mlp_ensemble", "MLP, permuted features", MUTED), ("coexpression", "zero", "Zero (no change)", MUTED)]
+               ("coexpression", "knn", "kNN", BLUE), ("shuffled_coexpression", "mlp_ensemble", "MLP, permuted features", MUTED), ("coexpression", "zero", "Zero (no change)", MUTED)]
     ds = order(S["included"])
     fig, axes = plt.subplots(1, 2, figsize=(7.4, 0.9 + 0.78 * len(ds) * len(entries) / 4), gridspec_kw={"width_ratios": [1.1, 1]}, sharey=True)
     rows, y = [], 0
@@ -254,7 +254,7 @@ def fig_calibration(S: dict, out: Path, posthoc: Path | None) -> pd.DataFrame:
     panels = [("a  Duplicate vs mean (pre-specified)", M)]
     if posthoc is not None and posthoc.exists():
         ph = pd.read_csv(posthoc)
-        panels.append(("b  Duplicate vs best of mean and zero (post hoc)", np.array([[ph[ph["dataset_id"] == d][f"{m}_beats_best_uninformative"].mean() for m in metrics] for d in ds])))
+        panels.append(("b  Duplicate vs zero prediction (post hoc)", np.array([[ph[ph["dataset_id"] == d][f"{m}_beats_zero"].mean() for m in metrics] for d in ds])))
     fig, axes = plt.subplots(1, len(panels), figsize=(4.0 * len(panels) + 0.8, 0.42 * len(ds) + 1.3), sharey=True, squeeze=False)
     for ax, (title, A) in zip(axes[0], panels):
         im = ax.imshow(A, cmap="Blues", vmin=0, vmax=1, aspect="auto")
@@ -266,7 +266,7 @@ def fig_calibration(S: dict, out: Path, posthoc: Path | None) -> pd.DataFrame:
         ax.set_title(title, loc="left")
         ax.grid(False)
     cb = fig.colorbar(im, ax=axes[0].tolist(), fraction=0.025, pad=0.02)
-    cb.set_label("Fraction of perturbations where a\ntechnical duplicate wins", fontsize=7)
+    cb.set_label("Duplicate win rate", fontsize=7)
     fig.savefig(out / "fig6_calibration.pdf")
     plt.close(fig)
     return pd.DataFrame(M, index=ds, columns=metrics)
@@ -337,7 +337,7 @@ def numbers(S: dict, bench: Path, pairs: Path, cal: pd.DataFrame, N: Numbers) ->
         ph = pd.read_csv(ph_path)
         for d in ds:
             for m in ["mse", "pearson", "pearson_specific", "topk_recall"]:
-                N.add(f"calBest{tex_name(d)}{tex_name(m)}", float(ph[ph["dataset_id"] == d][f"{m}_beats_best_uninformative"].mean()))
+                N.add(f"calZero{tex_name(d)}{tex_name(m)}", float(ph[ph["dataset_id"] == d][f"{m}_beats_zero"].mean()))
     c = S["confirm"]
     c1 = c[c["test"] == "C1"]
     N.add("nCOneTests", str(len(c1)))
